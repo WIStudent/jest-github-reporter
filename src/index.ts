@@ -69,13 +69,13 @@ class GithubReporter implements Reporter {
           relativePath: this.#getRelativePath(testFilePath)
         }))
       .flatMap(({testResults, ghPermaLink, relativePath}) => testResults.map(result => ({result, ghPermaLink, relativePath})))
-      .forEach(({result, ghPermaLink, relativePath}) => {
-        if (result.status !== "failed") {
+      .forEach(({result: {ancestorTitles, title, failureMessages, status}, ghPermaLink, relativePath}) => {
+        if (status !== "failed") {
           return;
         }
 
-        const label = `${[relativePath, ...result.ancestorTitles, result.title].join(" > ")}`
-        const content = `\n\n${ghPermaLink}\n\n\`\`\`\n${result.failureMessages.join()}\n\`\`\`\n`;
+        const label = `${[relativePath, ...ancestorTitles, title].join(" ▸ ")}`
+        const content = `\n\n${ghPermaLink}\n\n\`\`\`\n${failureMessages.join()}\n\`\`\`\n`;
         summary.addDetails(label, content);
       });
 
