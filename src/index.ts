@@ -37,8 +37,9 @@ class GithubReporter implements Reporter {
     return `[${text}](${href})`;
   }
 
-  #createLinkToTestFile(testFilePath: string): string {
-    return this.#createLink(this.#getRelativePath(testFilePath), this.#getGithubPermanentUrl(testFilePath));
+  #createLinkToTestFile(testFilePath: string, line?: number): string {
+    const lineSuffix = line ? `:{line}` : "";
+    return this.#createLink(`${this.#getRelativePath(testFilePath)}${lineSuffix}`, this.#getGithubPermanentUrl(testFilePath, line));
   }
 
   onRunStart() {
