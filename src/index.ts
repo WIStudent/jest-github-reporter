@@ -51,27 +51,13 @@ class GithubReporter implements Reporter {
 
     summary.addHeading("Jest Results");
 
-    const rows = testResults.map(({testFilePath, numFailingTests, numPassingTests, numPendingTests}) => [
-      this.#createLinkToTestFile(testFilePath),
-      `${numFailingTests}`,
-      `${numPendingTests}`,
-      `${numPassingTests}`,
-      `${numFailingTests + numPendingTests + numPassingTests}`
-    ]);
-
-    const totalRow = [
-      "<b>Total</b>",
-      `<b>${numFailedTests}</b>`,
-      `<b>${numPendingTests}</b>`,
-      `<b>${numPassedTests}</b>`,
-      `<b>${numFailedTests + numPendingTests + numPassedTests}</b>`
-    ];
-
-    summary.addTable([
-      ["Test", "Failed", "Skipped", "Passed", "Total"],
-      ...rows,
-      totalRow
-    ]);
+    const headerRow = "| Test | Failed | Skipped | Passed | Total |"
+    const dividerRow = "|---|---|---|---|---|"
+    const rows = testResults.map(({testFilePath, numFailingTests, numPassingTests, numPendingTests}) =>
+     `| ${this.#createLinkToTestFile(testFilePath)} | ${numFailingTests} | ${numPendingTests} | ${numPassingTests} | ${numFailingTests + numPendingTests + numPassingTests} |`
+    );
+    const totalRow = `| **Total** | **${numFailedTests}** | **${numPendingTests}** | **${numPassedTests}** | **${numFailedTests + numPendingTests + numPassedTests}** |`;
+    summary.addRaw(`${[headerRow, dividerRow, ...rows, totalRow].join("\n")}\n\n`)
 
     testResults
       .map(({testResults, testFilePath}) => ({testResults, ghPermaLink: this.#createLinkToTestFile(testFilePath)}))
@@ -81,7 +67,7 @@ class GithubReporter implements Reporter {
           return;
         }
         
-        summary.addRaw(`## ${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}`);
+        summary.addRaw(`## ${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}\n\n`);
         summary.addCodeBlock(result.failureMessages.join());
       })
 
