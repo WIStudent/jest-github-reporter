@@ -74,7 +74,7 @@ class GithubReporter implements Reporter {
         }
 
         const label = `${[relativePath, ...result.ancestorTitles, result.title].join(" > ")}`
-        const content = `\nFailed test: ${ghPermaLink}\n\n\`\`\`\n${result.failureMessages.join()}\n\`\`\`\n`;
+        const content = `\n\nFailed test: ${ghPermaLink}\n\n\`\`\`\n${result.failureMessages.join()}\n\`\`\`\n`;
         summary.addDetails(label, content);
       });
 
