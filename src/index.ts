@@ -50,6 +50,7 @@ class GithubReporter implements Reporter {
     }
 
     summary.addHeading("Jest Results");
+    summary.addHeading("Summary", 2);
 
     const headerRow = "| Test | Failed | Skipped | Passed | Total |"
     const dividerRow = "|---|---|---|---|---|"
@@ -59,7 +60,7 @@ class GithubReporter implements Reporter {
     const totalRow = `| **Total** | **${numFailedTests}** | **${numPendingTests}** | **${numPassedTests}** | **${numFailedTests + numPendingTests + numPassedTests}** |`;
     summary.addRaw(`\n${[headerRow, dividerRow, ...rows, totalRow].join("\n")}\n\n`)
 
-    summary.addHeading("Failed tests", 2);
+    summary.addHeading("Failed Tests", 2);
 
     testResults
       .map(({testResults, testFilePath}) => ({
