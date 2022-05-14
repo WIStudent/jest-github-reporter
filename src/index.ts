@@ -80,8 +80,8 @@ class GithubReporter implements Reporter {
         if (result.status !== "failed") {
           return;
         }
-
-        summary.addHeading([ghPermaLink, ...result.ancestorTitles, result.title].join(" > "), 2);
+        
+        summary.addRaw(`## ${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}`);
         summary.addCodeBlock(result.failureMessages.join());
       })
 
