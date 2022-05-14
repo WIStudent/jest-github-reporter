@@ -4,14 +4,41 @@ import {summary} from '@actions/core';
 import type {AggregatedResult, Reporter, TestContext, Config} from '@jest/reporters'
 
 class GithubReporter implements Reporter {
+  #createReport: boolean;
   #rootDir: string;
+  #githubServerUrl: string;
+  #githubRepository: string;
+  #githubSha: string;
 
   constructor(globalConfig: Config.GlobalConfig) {
+    this.#createReport =
+      process.env.GITHUB_ACTIONS !== undefined &&
+      process.env.GITHUB_SERVER_URL !== undefined &&
+      process.env.GITHUB_REPOSITORY !== undefined &&
+      process.env.GITHUB_SHA !== undefined;
+    
     this.#rootDir = globalConfig.rootDir;
+    this.#githubServerUrl = process.env.GITHUB_SERVER_URL ?? "";
+    this.#githubRepository = process.env.GITHUB_REPOSITORY ?? "";
+    this.#githubSha = process.env.GITHUB_SHA ?? "";
   }
 
   #getRelativePath(path: string): string {
     return nodePath.relative(this.#rootDir, path);
+  }
+
+  #getGithubPermanentUrl(path: string): string {
+    const relativePath = nodePath.relative(process.env.GITHUB_WORKSPACE ?? "", path);
+    return `${this.#githubServerUrl}/${this.#githubRepository}/blob/${this.#githubSha}/${relativePath}`;
+  }
+
+  /** not sanatized, use carefully! */
+  #createLink(text: string, href: string): string {
+    return `<a href="${href}">${text}</a>`
+  }
+
+  #createLinkToTestFile(testFilePath: string): string {
+    return this.#createLink(this.#getRelativePath(testFilePath), this.#getGithubPermanentUrl(testFilePath));
   }
 
   onRunStart() {
@@ -19,14 +46,14 @@ class GithubReporter implements Reporter {
   }
 
   async onRunComplete(testContexts: Set<TestContext>, {testResults, numFailedTests, numPassedTests, numPendingTests}: AggregatedResult) {
-    if (process.env.GITHUB_ACTIONS === undefined) {
+    if (!this.#createReport) {
       return;
     }
 
     summary.addHeading("Jest Results");
 
     const rows = testResults.map(({testFilePath, numFailingTests, numPassingTests, numPendingTests}) => [
-      this.#getRelativePath(testFilePath),
+      this.#createLinkToTestFile(testFilePath),
       `${numFailingTests}`,
       `${numPendingTests}`,
       `${numPassingTests}`,
@@ -34,11 +61,11 @@ class GithubReporter implements Reporter {
     ]);
 
     const totalRow = [
-      "**Total**",
-      `**${numFailedTests}**`,
-      `**${numPendingTests}**`,
-      `**${numPassedTests}**`,
-      `**${numFailedTests + numPendingTests + numPassedTests}**`
+      "<b>Total</b>",
+      `<b>${numFailedTests}</b>`,
+      `<b>${numPendingTests}</b>`,
+      `<b>${numPassedTests}</b>`,
+      `<b>${numFailedTests + numPendingTests + numPassedTests}</b>`
     ];
 
     summary.addTable([
@@ -48,14 +75,14 @@ class GithubReporter implements Reporter {
     ]);
 
     testResults
-      .map(({testResults, testFilePath}) => ({testResults, relativePath: this.#getRelativePath(testFilePath)}))
-      .flatMap(({testResults, relativePath}) => testResults.map(result => ({result, relativePath})))
-      .forEach(({result, relativePath}) => {
+      .map(({testResults, testFilePath}) => ({testResults, ghPermaLink: this.#createLinkToTestFile(testFilePath)}))
+      .flatMap(({testResults, ghPermaLink}) => testResults.map(result => ({result, ghPermaLink})))
+      .forEach(({result, ghPermaLink}) => {
         if (result.status !== "failed") {
           return;
         }
 
-        summary.addHeading([relativePath, ...result.ancestorTitles, result.title].join(" > "), 2);
+        summary.addHeading([ghPermaLink, ...result.ancestorTitles, result.title].join(" > "), 2);
         summary.addCodeBlock(result.failureMessages.join());
       })
 
