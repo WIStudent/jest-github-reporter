@@ -76,7 +76,7 @@ class GithubReporter implements Reporter {
           if (status !== "failed") {
             return;
           }
-          const ghPermaLink = this.#getGithubPermanentUrl(testFilePath, location?.line);
+          const ghPermaLink = this.#createLinkToTestFile(testFilePath, location?.line);
           const label = `${[relativePath, ...ancestorTitles, title].join(" ▸ ")}`
           const content = `\n\n${ghPermaLink}\n\n\`\`\`\n${failureMessages.join()}\n\`\`\`\n`;
           summary.addDetails(label, content);
