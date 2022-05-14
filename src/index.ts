@@ -32,9 +32,8 @@ class GithubReporter implements Reporter {
     return `${this.#githubServerUrl}/${this.#githubRepository}/blob/${this.#githubSha}/${relativePath}`;
   }
 
-  /** not sanatized, use carefully! */
   #createLink(text: string, href: string): string {
-    return `<a href="${href}">${text}</a>`
+    return `[${text}](${href})`;
   }
 
   #createLinkToTestFile(testFilePath: string): string {
