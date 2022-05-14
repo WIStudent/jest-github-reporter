@@ -1,0 +1,1 @@
+A jest reporter adding test results as a Github job summary.
