@@ -67,9 +67,8 @@ class GithubReporter implements Reporter {
           return;
         }
         
-        summary.addRaw(`## ${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}\n\n`);
-        summary.addCodeBlock(result.failureMessages.join());
-      })
+        summary.addDetails(`${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}`, `\`\`\`\n${result.failureMessages.join()}\n\`\`\``);
+      });
 
     await summary.write();
   }
