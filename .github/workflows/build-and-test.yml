@@ -11,7 +11,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node_version: 16
-      - uses: npm ci
-      - uses: npm run lint
-      - uses: npm run build
-      - uses: npm run test
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test
