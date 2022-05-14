@@ -57,7 +57,7 @@ class GithubReporter implements Reporter {
      `| ${this.#createLinkToTestFile(testFilePath)} | ${numFailingTests} | ${numPendingTests} | ${numPassingTests} | ${numFailingTests + numPendingTests + numPassingTests} |`
     );
     const totalRow = `| **Total** | **${numFailedTests}** | **${numPendingTests}** | **${numPassedTests}** | **${numFailedTests + numPendingTests + numPassedTests}** |`;
-    summary.addRaw(`${[headerRow, dividerRow, ...rows, totalRow].join("\n")}\n\n`)
+    summary.addRaw(`\n${[headerRow, dividerRow, ...rows, totalRow].join("\n")}\n\n`)
 
     testResults
       .map(({testResults, testFilePath}) => ({testResults, ghPermaLink: this.#createLinkToTestFile(testFilePath)}))
