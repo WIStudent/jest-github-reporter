@@ -59,15 +59,23 @@ class GithubReporter implements Reporter {
     const totalRow = `| **Total** | **${numFailedTests}** | **${numPendingTests}** | **${numPassedTests}** | **${numFailedTests + numPendingTests + numPassedTests}** |`;
     summary.addRaw(`\n${[headerRow, dividerRow, ...rows, totalRow].join("\n")}\n\n`)
 
+    summary.addHeading("Failed tests", 2);
+
     testResults
-      .map(({testResults, testFilePath}) => ({testResults, ghPermaLink: this.#createLinkToTestFile(testFilePath)}))
-      .flatMap(({testResults, ghPermaLink}) => testResults.map(result => ({result, ghPermaLink})))
-      .forEach(({result, ghPermaLink}) => {
+      .map(({testResults, testFilePath}) => ({
+        testResults,
+         ghPermaLink: this.#createLinkToTestFile(testFilePath),
+          relativePath: this.#getRelativePath(testFilePath)
+        }))
+      .flatMap(({testResults, ghPermaLink, relativePath}) => testResults.map(result => ({result, ghPermaLink, relativePath})))
+      .forEach(({result, ghPermaLink, relativePath}) => {
         if (result.status !== "failed") {
           return;
         }
-        
-        summary.addDetails(`${[ghPermaLink, ...result.ancestorTitles, result.title].join(" > ")}`, `\`\`\`\n${result.failureMessages.join()}\n\`\`\``);
+
+        const label = `${[relativePath, ...result.ancestorTitles, result.title].join(" > ")}`
+        const content = `Failed test: ${ghPermaLink}\n\`\`\`\n${result.failureMessages.join()}\n\`\`\``;
+        summary.addDetails(label, content);
       });
 
     await summary.write();
