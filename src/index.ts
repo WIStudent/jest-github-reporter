@@ -27,9 +27,10 @@ class GithubReporter implements Reporter {
     return nodePath.relative(this.#rootDir, path);
   }
 
-  #getGithubPermanentUrl(path: string): string {
+  #getGithubPermanentUrl(path: string, line?: number): string {
     const relativePath = nodePath.relative(process.env.GITHUB_WORKSPACE ?? "", path);
-    return `${this.#githubServerUrl}/${this.#githubRepository}/blob/${this.#githubSha}/${relativePath}`;
+    const lineHash = line ? `#L${line}` : "";
+    return `${this.#githubServerUrl}/${this.#githubRepository}/blob/${this.#githubSha}/${relativePath}/${lineHash}`;
   }
 
   #createLink(text: string, href: string): string {
@@ -66,15 +67,15 @@ class GithubReporter implements Reporter {
       testResults
         .map(({testResults, testFilePath}) => ({
           testResults,
-           ghPermaLink: this.#createLinkToTestFile(testFilePath),
-            relativePath: this.#getRelativePath(testFilePath)
-          }))
-        .flatMap(({testResults, ghPermaLink, relativePath}) => testResults.map(result => ({result, ghPermaLink, relativePath})))
-        .forEach(({result: {ancestorTitles, title, failureMessages, status}, ghPermaLink, relativePath}) => {
+          testFilePath,
+          relativePath: this.#getRelativePath(testFilePath)
+        }))
+        .flatMap(({testResults, testFilePath, relativePath}) => testResults.map(result => ({result, testFilePath, relativePath})))
+        .forEach(({result: {ancestorTitles, title, failureMessages, status, location}, testFilePath, relativePath}) => {
           if (status !== "failed") {
             return;
           }
-  
+          const ghPermaLink = this.#getGithubPermanentUrl(testFilePath, location?.line);
           const label = `${[relativePath, ...ancestorTitles, title].join(" ▸ ")}`
           const content = `\n\n${ghPermaLink}\n\n\`\`\`\n${failureMessages.join()}\n\`\`\`\n`;
           summary.addDetails(label, content);
